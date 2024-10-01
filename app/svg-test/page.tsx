@@ -24,7 +24,6 @@ function SvgTest() {
 
   return (
     <div>
-      <div>page</div>
       <div className="flex justify-center">
         <Dropdown />
       </div>
