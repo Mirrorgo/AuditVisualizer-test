@@ -6,21 +6,19 @@ import {
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import { Crown } from "lucide-react";
 import { Candidate } from "./constants";
-import SearchDropdown from "./search-dropdown";
 import { useEffect, useRef } from "react";
 import useMultiWinnerDataStore from "@/store/multi-winner-data";
 import { getSmartDisplayName } from "@/components/ui/avatar";
 
 type CandidateListBarProps = {
-  selectedWinnerId: number | null;
-  handleSelectWinner: (id: number) => void;
-  useAvatar: boolean;
+  selectedTreeId: number;
+  setSelectedTreeId: (id: number) => void;
   candidateList: Candidate[];
 };
 
-function CandidateListBar({
-  selectedWinnerId,
-  handleSelectWinner,
+function DefaultCandidateListBar({
+  selectedTreeId,
+  setSelectedTreeId,
   candidateList,
 }: CandidateListBarProps) {
   const { winnerInfo } = useMultiWinnerDataStore();
@@ -38,10 +36,6 @@ function CandidateListBar({
       el.removeEventListener("wheel", handleWheel);
     };
   }, []);
-
-  const handleCandidateSelect = (candidateId: number) => {
-    handleSelectWinner(candidateId);
-  };
 
   return (
     <div
@@ -73,11 +67,11 @@ function CandidateListBar({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger
-                    onClick={() => handleCandidateSelect(candidate.id)}
+                    onClick={() => setSelectedTreeId(candidate.id)}
                     className={`flex items-center justify-center rounded-full cursor-pointer 
-                                border-2 text-[10px] leading-tight text-center font-bold px-1 
-                                w-10 h-10
-                                ${selectedWinnerId === candidate.id ? "border-blue-500" : "border-black"}`}
+								  border-2 text-[10px] leading-tight text-center font-bold px-1 
+								  w-10 h-10
+								  ${selectedTreeId === candidate.id ? "border-blue-500" : "border-black"}`}
                   >
                     {shortName}
                   </TooltipTrigger>
@@ -90,13 +84,8 @@ function CandidateListBar({
           );
         })}
       </div>
-
-      <SearchDropdown
-        candidateList={candidateList}
-        onSelect={handleCandidateSelect}
-      />
     </div>
   );
 }
 
-export default CandidateListBar;
+export default DefaultCandidateListBar;
