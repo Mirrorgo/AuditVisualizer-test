@@ -7,55 +7,57 @@ import { FaUserFriends, FaTrophy, FaList } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ChevronRight, FilePenLine } from "lucide-react";
-import AuditProgressAnimation from "./components/audit-progress-animation"; // Ensure the file name matches the actual file
 import EliminationTree from "./components/elimination-tree";
 import useMultiWinnerDataStore from "@/store/multi-winner-data";
 import {
-  // inferEliminationPathWithDetails,
   AssertionInternal,
   verifyWinnerByDP,
 } from "@/lib/explain/judge_winner";
-// import multiWinnerData from "@/store/multi-winner-data"; // 引入 zustand store
 
 import { useTour } from "@reactour/tour";
 
 import { Workflow } from "lucide-react";
-import { useFileDataStore } from "@/store/fileData";
-import useTreeTabStore from "@/store/use-tree-tab-store";
+import { useSelectFirstNonWinner } from "@/hooks/useSelectFirstNonWinner";
 
 const Dashboard: FC = () => {
+  const { candidateList, assertionList, winnerInfo } =
+    useMultiWinnerDataStore();
+
   const { setIsOpen } = useTour();
 
-  const startStepByStepTab = () => {
-    useTreeTabStore.getState().setCurrentTab("step-by-step");
-  };
-
-  const storeTabState = () => {
-    useTreeTabStore.getState().backupTab();
-  };
+  const selectFirstNonWinner = useSelectFirstNonWinner();
 
   const startTour = () => {
     if (setIsOpen) {
-      storeTabState();
-      startStepByStepTab();
+      const candidateCount = candidateList.length;
+      const judge_select_new_tree = candidateCount >= 6;
+      if (judge_select_new_tree) {
+        selectFirstNonWinner();
+      }
       setIsOpen(true);
     }
   };
-  const fileData = useFileDataStore((state) => state.fileData);
 
   const tour = useTour();
 
   useEffect(() => {
     const shouldStart = sessionStorage.getItem("startTour");
     if (shouldStart === "true" && tour.setIsOpen) {
-      startStepByStepTab();
+      tour.setCurrentStep(0);
       tour.setIsOpen(true);
+
+      const candidateCount = candidateList.length;
+      const judge_select_new_tree = candidateCount >= 6;
+      if (judge_select_new_tree) {
+        console.log("selectFirstNonWinner");
+        setTimeout(() => {
+          selectFirstNonWinner();
+        }, 100); // 100ms
+      }
+
       sessionStorage.removeItem("startTour");
     }
   }, [tour]);
-
-  const { candidateList, assertionList, winnerInfo } =
-    useMultiWinnerDataStore();
 
   // Ensure hooks are always called in the same order
   const [isAvatarReady, setIsAvatarReady] = useState(false);
@@ -151,7 +153,7 @@ const Dashboard: FC = () => {
         {/* 左侧区域 */}
         <div className="col-span-12 md:col-span-8 flex flex-col space-y-6">
           {/* 数据卡片 */}
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-x-auto" data-tour="first-step">
             <div className="flex flex-nowrap gap-2 md:gap-6 min-w-full pb-2">
               <div className="flex-1 min-w-max">
                 <Card
@@ -179,7 +181,7 @@ const Dashboard: FC = () => {
 
           {/* Elimination Tree */}
           <div
-            data-tour="fourth-step"
+            data-tour="tree"
             className="flex-1 flex flex-col border border-gray-300 shadow-md rounded-lg p-4"
           >
             <EliminationTree />

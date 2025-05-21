@@ -1,5 +1,4 @@
 import {
-  MutableRefObject,
   useEffect,
   useRef,
   useState,
@@ -29,6 +28,7 @@ import DefaultCandidateListBar from "../elimination-tree/default-candidate-list-
 import useDefaultTree from "@/store/use-default-tree";
 import { getContentFromAssertion } from "@/utils/candidateTools";
 import { getCandidateNumber } from "@/app/explain-assertions/components/explain-process";
+import useTreeSelectionStore from "@/store/use-tree-selection-store";
 
 // Node sizing constants
 const NODE_RADIUS = 18;
@@ -44,13 +44,10 @@ function LazyLoadView() {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const gRef = useRef<SVGGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Updated to use SVGSVGElement instead of Element
-  const zoomBehaviorRef = useRef<d3.ZoomBehavior<
-    SVGSVGElement,
-    unknown
-  > | null>(null);
 
-  const [selectedTreeId, setSelectedTreeId] = useState(0);
+  const selectedTreeId = useTreeSelectionStore((s) => s.selectedTreeId);
+  const setSelectedTreeId = useTreeSelectionStore((s) => s.setSelectedTreeId);
+
   const [currentZoom, setCurrentZoom] = useState(1);
   const [currentTransform, setCurrentTransform] =
     useState<d3.ZoomTransform | null>(null);
@@ -667,10 +664,11 @@ function LazyLoadView() {
       .text((d) => {
         // Add tooltip showing the pruning reason
         if (d.target.data.prunedBy) {
-          return `Pruned by: ${getContentFromAssertion({
+          const obj = getContentFromAssertion({
             assertion: d.target.data.prunedBy,
             candidateList,
-          })}`;
+          });
+          return `[${obj.idx}] Pruned by: ${obj.text}`;
         }
         return "Pruned node";
       });
@@ -1154,7 +1152,11 @@ function LazyLoadView() {
                 <Minimize className="h-4 w-4" />
               </Button>
             </div>
-            <Button variant="outline" onClick={expandAllNodes}>
+            <Button
+              variant="outline"
+              onClick={expandAllNodes}
+              data-tour="expand-all-button"
+            >
               <ExpandIcon className="h-4 w-4 mr-2" />
               Expand All
             </Button>
@@ -1228,7 +1230,11 @@ function LazyLoadView() {
               <Maximize className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="outline" onClick={expandAllNodes}>
+          <Button
+            variant="outline"
+            onClick={expandAllNodes}
+            data-tour="expand-all-button"
+          >
             <ExpandIcon className="h-4 w-4 mr-2" />
             Expand All
           </Button>
